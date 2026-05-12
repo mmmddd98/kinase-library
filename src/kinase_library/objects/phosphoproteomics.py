@@ -434,7 +434,10 @@ class PhosphoProteomics(object):
         if customized_scored_phosprot is not None:
             all_scored_phosprot = customized_scored_phosprot
         else:
-            all_scored_phosprot = core.ScoredPhosphoProteome(phosprot_name=_global_vars.phosprot_name, phosprot_path=phosprot_path)
+            all_scored_phosprot = getattr(_global_vars, 'all_scored_phosprot', None)
+            if all_scored_phosprot is None:
+                all_scored_phosprot = core.ScoredPhosphoProteome(phosprot_name=_global_vars.phosprot_name, phosprot_path=phosprot_path)
+                _global_vars.all_scored_phosprot = all_scored_phosprot
 
         if kin_type is None:
             kin_type = data.get_kinase_type(kinases[0])
@@ -454,7 +457,7 @@ class PhosphoProteomics(object):
         print('Calculating percentile for '+str(len(getattr(self,kin_type+'_substrates')))+' '+kin_type+' substrates')
         logger.info('Calculating percentile for '+str(len(getattr(self,kin_type+'_substrates')))+' '+kin_type+' substrates')
         result = np.empty_like(score_vals, dtype=float)
-        for j in tqdm(range(sorted_subset.shape[1]), desc='Percentile scoring'):
+        for j in tqdm(range(sorted_subset.shape[1]), desc='Percentile scoring', disable=True):
             result[:, j] = np.searchsorted(sorted_subset[:, j], score_vals[:, j], side='right')
         percent_output = pd.DataFrame(result / n_phosprot * 100,
                                       index=score.index, columns=kinases)
